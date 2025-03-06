@@ -13,19 +13,55 @@ export const authConfig: NextAuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        
+      async authorize(credentials: any) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
         try {
-          const response = await fetch(`${process.env.API_URL}/auth/login`, {
+          // 1. First login to get the token
+          const loginResponse = await fetch(`${process.env.API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(credentials)
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password
+            })
           });
 
-          const user = await response.json();
-          return user;
+          if (!loginResponse.ok) {
+            throw new Error('Invalid credentials');
+          }
+
+          const loginData = await loginResponse.json();
+          
+          if (!loginData || !loginData.access_token) {
+            throw new Error('Invalid response from server');
+          }
+
+          // 2. Then fetch the user profile using the token
+          const profileResponse = await fetch(`${process.env.API_URL}/user/profile`, {
+            headers: {
+              'Authorization': `Bearer ${loginData.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!profileResponse.ok) {
+            throw new Error('Failed to fetch user profile');
+          }
+
+          const profileData = await profileResponse.json();
+
+          // 3. Return combined data
+          return {
+            id: profileData.id,
+            email: profileData.email,
+            name: profileData.name,
+            access_token: loginData.access_token
+          };
         } catch (error) {
+          console.error('Auth error:', error);
           return null;
         }
       }
@@ -38,17 +74,28 @@ export const authConfig: NextAuthConfig = {
     strategy: 'jwt'
   },
   callbacks: {
-    async jwt({ token, user }: { token: any, user: any }) {
+    async jwt({ token, user }) {
       if (user) {
-        token.accessToken = user.token;
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.access_token = user.access_token;
       }
       return token;
     },
-    async session({ session, token }: { session: any, token: any }) {
+    async session({ session, token }) {
       if (token && session.user) {
-        session.user.accessToken = token.accessToken;
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.access_token = token.access_token as string;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }: { url: string, baseUrl: string }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     }
   }
 }; 

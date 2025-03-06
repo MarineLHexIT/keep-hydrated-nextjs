@@ -9,19 +9,19 @@ export interface UserInfo {
 
 declare module 'next-auth' {
     interface User extends UserInfo {
-        accessToken: string
+        access_token: string
     }
         
     interface Session {
-        accessToken?: string
+        access_token?: string
         user?: UserInfo & User & DefaultSession['user']
     }
 }
 
 declare module '@auth/core/jwt' {
     interface JWT {
-        accessToken?: string
-        firstName?: string
-        lastName?: string
+        access_token?: string
+        name?: string
+        email?: string
     }
 }

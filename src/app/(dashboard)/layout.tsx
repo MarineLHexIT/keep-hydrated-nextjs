@@ -1,15 +1,15 @@
 import { auth } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 
-export default async function AuthLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const session = await auth()
   
-  if (session?.user) {
-    redirect('/dashboard')
+  if (!session?.user) {
+    redirect('/login')
   }
 
   return <div className="min-h-screen">{children}</div>
