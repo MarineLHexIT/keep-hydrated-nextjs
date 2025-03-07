@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { type ReactNode } from "react"
-import { QueryProvider } from "./query-provider"
-import { NextAuthProvider } from "./session-provider"
+import { type ReactNode } from 'react';
+import { QueryProvider } from './query-provider';
+import { NextAuthProvider } from './session-provider';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -13,5 +13,5 @@ export function Providers({ children }: { children: ReactNode }) {
         </NextAuthProvider>
       </QueryProvider>
     </>
-  )
+  );
 } 

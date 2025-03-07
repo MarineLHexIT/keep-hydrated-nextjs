@@ -1,4 +1,4 @@
-import { DefaultSession } from '@auth/core/types'
+import { DefaultSession } from '@auth/core/types';
 
 export interface UserInfo {
     id: string

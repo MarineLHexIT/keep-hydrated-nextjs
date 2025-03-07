@@ -1,12 +1,14 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { useActionState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
 
-import { loginUser } from '@/app/actions/auth';
-import { LoginFormValues, loginSchema } from '@/lib/validations/auth';
+import { registerUser } from '@/app/actions/auth';
+import { RegisterFormValues, registerSchema } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -25,44 +27,75 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import { useActionState, useEffect } from 'react';
 
 
-export function LoginForm() {
+// Submit button with loading state
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  
+  return (
+    <Button
+      type="submit"
+      className="w-full"
+      disabled={pending}
+    >
+      {pending ? 'Creating account...' : 'Create account'}
+    </Button>
+  );
+}
 
+export function RegisterForm() {
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(loginUser, {
-    errors: {},
-    message: '',
+  const [state, formAction] = useActionState(registerUser, {
+    error: null,
     success: false
   });
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: '',
       password: '',
+      name: '',
     },
   });
 
-  useEffect(() => {
-    if (state?.success) {
-      router.push('/dashboard');
-      router.refresh();
-    }
-  }, [state?.success, router]);
+  // Watch for successful registration and redirect
+  if (state.success) {
+    router.push('/login?registered=true');
+  }
+
+  function onSubmit(data: RegisterFormValues) {
+    formAction(data);
+  }
 
   return (
     <Card className="w-[350px] mx-auto">
       <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
+        <CardTitle>Create an account</CardTitle>
         <CardDescription>
-          Sign in to your account to continue
+          Enter your details to create your account
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form action={formAction.bind(null, form.getValues())} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"
@@ -89,7 +122,7 @@ export function LoginForm() {
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Create a password"
                       {...field}
                     />
                   </FormControl>
@@ -97,29 +130,23 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-              {state?.errors && (
+            {state.error && (
               <div className="text-sm text-red-500 text-center">
-                {state.errors.root?.[0]}
+                {state.error}
               </div>
             )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending}
-            >
-              {isPending ? 'Signing in...' : 'Sign in'}
-            </Button>
+            <SubmitButton />
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Don't have an account?{' '}
+          Already have an account?{' '}
           <Link 
-            href="/register"
+            href="/login"
             className="text-primary underline-offset-4 hover:underline"
           >
-            Sign up
+            Sign in
           </Link>
         </p>
       </CardFooter>

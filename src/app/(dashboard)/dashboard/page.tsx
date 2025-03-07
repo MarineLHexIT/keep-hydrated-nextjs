@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth/auth"
-import { redirect } from "next/navigation"
-import { LogoutButton } from "@/components/auth/logout-button"
+import { auth } from '@/lib/auth/auth';
+import { redirect } from 'next/navigation';
+import { LogoutButton } from '@/components/auth/logout-button';
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const session = await auth();
   
   if (!session?.user) {
-    redirect('/login')
+    redirect('/login');
   }
 
   return (
@@ -23,5 +23,5 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 } 

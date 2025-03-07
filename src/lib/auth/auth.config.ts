@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import { loginSchema } from '@/lib/validations/auth';
 
 if (!process.env.API_URL) {
   throw new Error('API_URL must be defined in environment variables');
@@ -10,11 +11,13 @@ export const authConfig: NextAuthConfig = {
     Credentials({
       name: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials: any) {
-        if (!credentials?.email || !credentials?.password) {
+        const parsedCredentials = loginSchema.safeParse(credentials);
+        
+        if (!parsedCredentials.success) {
           return null;
         }
 
@@ -58,7 +61,8 @@ export const authConfig: NextAuthConfig = {
             id: profileData.id,
             email: profileData.email,
             name: profileData.name,
-            access_token: loginData.access_token
+            access_token: loginData.access_token,
+            quickAccessToken: loginData.quick_access_token
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -77,8 +81,8 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
+        token.email = user.email || undefined;
+        token.name = user.name || undefined;
         token.access_token = user.access_token;
       }
       return token;
@@ -93,7 +97,7 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
     async redirect({ url, baseUrl }: { url: string, baseUrl: string }) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     }
