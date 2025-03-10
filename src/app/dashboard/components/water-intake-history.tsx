@@ -9,22 +9,7 @@ import { WaterIntakeData } from '../actions';
 type TimePeriod = 'day' | 'week' | 'month';
 
 function groupDataByPeriod(data: WaterIntakeData[], period: TimePeriod) {
-  const today = new Date();
   const groupedData: { date: Date; data: WaterIntakeData[] }[] = [];
-  
-  // Get the start date based on the period
-  let startDate = new Date();
-  switch (period) {
-    case 'day':
-      startDate = startOfDay(today);
-      break;
-    case 'week':
-      startDate = startOfWeek(today);
-      break;
-    case 'month':
-      startDate = startOfMonth(today);
-      break;
-  }
 
   // Group data by period
   data.forEach(item => {

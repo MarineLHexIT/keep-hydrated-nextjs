@@ -2,7 +2,6 @@
 
 import { RegisterFormValues, registerSchema } from '@/lib/validations/auth';
 import { LoginFormValues, loginSchema } from '@/lib/validations/auth';
-import { AuthError } from 'next-auth';
 import { signIn } from '@/lib/auth/auth';
 
 export type RegisterState = {
