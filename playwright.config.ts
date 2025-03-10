@@ -1,6 +1,6 @@
-import { PlaywrightTestConfig } from '@playwright/test';
+import type { PlaywrightTestConfig } from '@playwright/test';
 
-const config: PlaywrightTestConfig = {
+const config = {
   testDir: './e2e',
   timeout: 30000,
   expect: {
@@ -13,9 +13,12 @@ const config: PlaywrightTestConfig = {
   reporter: 'html',
   use: {
     actionTimeout: 0,
-    baseURL: 'http://localhost:3001',
+    baseURL: 'http://localhost:5000',
     trace: 'on-first-retry',
     video: 'on-first-retry',
+    launchOptions: {
+      args: ['--disable-web-security']
+    }
   },
   projects: [
     {
@@ -38,10 +41,11 @@ const config: PlaywrightTestConfig = {
     },
   ],
   webServer: {
-    command: 'yarn dev',
-    port: 3001,
+    command: 'yarn dev -p 5000',
+    port: 5000,
     reuseExistingServer: !process.env.CI,
+    timeout: 120000,
   },
-};
+} satisfies PlaywrightTestConfig;
 
 export default config; 
