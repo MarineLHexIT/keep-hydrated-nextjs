@@ -4,8 +4,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { startTransition } from 'react';
 
-import { loginUser } from '@/app/actions/auth';
+import { loginUser, LoginState } from '@/app/actions/auth';
 import { LoginFormValues, loginSchema } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +32,7 @@ import { useActionState, useEffect } from 'react';
 export function LoginForm() {
 
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(loginUser, {
+  const [state, formAction, isPending] = useActionState<LoginState, LoginFormValues>(loginUser, {
     errors: {},
     message: '',
     success: false
@@ -45,10 +46,15 @@ export function LoginForm() {
     },
   });
 
+  const onSubmit = async (data: LoginFormValues) => {
+    startTransition(async () => {
+      await formAction(data);
+    });
+  };
+
   useEffect(() => {
     if (state?.success) {
       router.push('/dashboard');
-      router.refresh();
     }
   }, [state?.success, router]);
 
@@ -62,7 +68,7 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form action={formAction.bind(null, form.getValues())} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="email"

@@ -81,29 +81,27 @@ export async function loginUser(
   const { email, password } = validatedFields.data;
 
   try {
-    await signIn('credentials', {
+    const result = await signIn('credentials', {
       email,
       password,
-      redirect: false
+      redirect: false,
+      callbackUrl: '/dashboard'
     });
+
+    if (result?.error) {
+      return { 
+        errors: { root: ['Invalid email or password'] }, 
+        success: false 
+      };
+    }
 
     return {
       success: true
     };
   } catch (error) {
-
-    console.log(error);
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return { errors: { root: ['Invalid email or password'] }, success: false };
-        default:
-          return { errors: { root: ['Something went wrong'] }, success: false };
-      }
-    }
-    
+    console.error('Login error:', error);
     return {
-      errors: { root: ['Something went really wrong'] },
+      errors: { root: ['Something went wrong'] },
       success: false
     };
   }
