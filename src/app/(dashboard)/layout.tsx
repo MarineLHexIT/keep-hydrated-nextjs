@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
+import { DashboardHeader } from '@/components/dashboard/header';
 
 export default async function DashboardLayout({
   children,
@@ -12,5 +13,12 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  return <div className="min-h-screen">{children}</div>;
+  return (
+    <div className="min-h-screen bg-background">
+      <DashboardHeader />
+      <main className="container mx-auto py-6">
+        {children}
+      </main>
+    </div>
+  );
 } 
