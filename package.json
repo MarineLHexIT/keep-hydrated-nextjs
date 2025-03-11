@@ -9,7 +9,9 @@
     "start": "next start -p 5000",
     "lint": "next lint",
     "storybook": "storybook dev -p 6060",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
