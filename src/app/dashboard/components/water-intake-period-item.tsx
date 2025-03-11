@@ -13,11 +13,11 @@ export function WaterIntakePeriodItem({ period, date, data }: WaterIntakePeriodI
   const getTitle = () => {
     switch (period) {
       case 'day':
-        return format(date, 'MMMM d, yyyy');
+        return format(date, 'd MMMM yyyy');
       case 'week': {
         const start = startOfWeek(date);
         const end = endOfWeek(date);
-        return `Week ${format(date, 'w')} (${format(start, 'MMM d')} - ${format(end, 'MMM d')})`;
+        return `Semaine ${format(date, 'w')} (${format(start, 'd MMM')} - ${format(end, 'd MMM')})`;
       }
       case 'month':
         return format(date, 'MMMM yyyy');
@@ -25,7 +25,8 @@ export function WaterIntakePeriodItem({ period, date, data }: WaterIntakePeriodI
   };
 
   const totalIntake = data.reduce((sum, item) => sum + item.amount, 0);
-  const averageIntake = Math.round(totalIntake / data.length);
+  const nbDays = Array.from(new Set(data.map((item) => item.date))).length;
+  const averageIntake = Math.round(totalIntake / nbDays);
 
   return (
     <div className="rounded-lg border p-6">

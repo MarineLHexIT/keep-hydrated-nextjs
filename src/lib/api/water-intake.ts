@@ -14,7 +14,7 @@ export async function getWaterIntakeHistory(): Promise<WaterIntake[]> {
  
   const client = await getClient();
   
-  return client.get('/water-intake/history', {
+  return client.get('/water-intake', {
     errorMessage: 'Failed to fetch water intake history'
   });
 }

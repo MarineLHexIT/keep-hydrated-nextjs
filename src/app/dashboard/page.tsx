@@ -1,8 +1,9 @@
+import { Suspense } from 'react';
 import { getWaterIntakeData, WaterIntakeData } from './actions';
 import { WaterIntakeHistory } from './components/water-intake-history';
 
-export default function DashboardPage() {
-  const waterIntakeData:Array<WaterIntakeData> = []; //await getWaterIntakeData();
+export default async function DashboardPage() {
+  const waterIntakeData:Array<WaterIntakeData> = await getWaterIntakeData();
 
   return (
     <div className="space-y-8">
@@ -13,7 +14,9 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      <Suspense>
       <WaterIntakeHistory initialData={waterIntakeData} />
+      </Suspense>
     </div>
   );
 } 

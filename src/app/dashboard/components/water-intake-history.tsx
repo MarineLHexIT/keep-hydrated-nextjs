@@ -9,6 +9,7 @@ import { WaterIntakeData } from '../actions';
 type TimePeriod = 'day' | 'week' | 'month';
 
 function groupDataByPeriod(data: WaterIntakeData[], period: TimePeriod) {
+
   const groupedData: { date: Date; data: WaterIntakeData[] }[] = [];
 
   // Group data by period
@@ -45,6 +46,8 @@ interface WaterIntakeHistoryProps {
 export function WaterIntakeHistory({ initialData }: WaterIntakeHistoryProps) {
   const [period, setPeriod] = useState<TimePeriod>('day');
   const groupedData = groupDataByPeriod(initialData, period);
+
+  console.log('période: ', period, groupedData);
 
   return (
     <div className="space-y-6">
