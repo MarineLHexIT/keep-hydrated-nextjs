@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { startTransition } from 'react';
 
-import { loginUser, LoginState } from '@/app/actions/auth';
+import { loginUser, LoginState } from '@/app/(auth)/actions';
 import { LoginFormValues, loginSchema } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import {

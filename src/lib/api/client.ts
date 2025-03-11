@@ -1,112 +1,100 @@
-import { env } from '@/lib/config/env';
-import type { APIResponse, ErrorResponse } from './types';
+import { auth } from '../auth/auth';    
 
-export class APIError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public errors?: Record<string, string[]>
-  ) {
-    super(message);
-    this.name = 'APIError';
-  }
-}
+export class AuthentifiedApiClient {
+    private readonly timeout: number = 30000; // 30 seconds default timeout
 
-type RequestConfig = {
-  headers?: Record<string, string>;
-  requiresAuth?: boolean;
-} & Omit<RequestInit, 'headers'>;
+    constructor(
+        private readonly baseUrl: string,
+        private readonly accessToken: string
+    ) {}
 
-export class APIClient {
-  private static instance: APIClient;
-  private baseUrl: string;
-  private defaultHeaders: Record<string, string>;
-
-  private constructor() {
-    this.baseUrl = env.API_URL;
-    this.defaultHeaders = {
-      'Content-Type': 'application/json',
-    };
-  }
-
-  public static getInstance(): APIClient {
-    if (!APIClient.instance) {
-      APIClient.instance = new APIClient();
-    }
-    return APIClient.instance;
-  }
-
-  private getAuthHeader(): Record<string, string> {
-    // In a real app, you'd get this from your auth state/localStorage
-    const token = sessionStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }
-
-  private async handleResponse<T>(response: Response): Promise<T> {
-    const data = await response.json();
-
-    if (!response.ok) {
-      const errorData = data as ErrorResponse;
-      throw new APIError(
-        errorData.message || 'An error occurred',
-        response.status,
-        errorData.errors
-      );
+    private getAuthHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.accessToken}`,
+        };
     }
 
-    return (data as APIResponse<T>).data;
-  }
+    private async handleResponse<T>(response: Response, errorMessage: string): Promise<T> {
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorMessage + (errorData ? `: ${JSON.stringify(errorData)}` : ''));
+        }
+        return await response.json();
+    }
 
-  async request<T>(
-    endpoint: string,
-    { headers = {}, requiresAuth = true, ...config }: RequestConfig = {}
-  ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const authHeaders = requiresAuth ? this.getAuthHeader() : {};
+    private async fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-    const response = await fetch(url, {
-      ...config,
-      headers: {
-        ...this.defaultHeaders,
-        ...authHeaders,
-        ...headers,
-      },
-    });
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal,
+            });
+            return response;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
 
-    return this.handleResponse<T>(response);
-  }
+    async get<T>(path: string, options: { errorMessage: string }): Promise<T> {
+        const response = await this.fetchWithTimeout(`${this.baseUrl}${path}`, {
+            headers: this.getAuthHeaders(),
+            mode: 'cors',
+        });
 
-  async get<T>(endpoint: string, config: RequestConfig = {}) {
-    return this.request<T>(endpoint, { ...config, method: 'GET' });
-  }
+        return this.handleResponse(response, options.errorMessage);
+    }
 
-  async post<T>(endpoint: string, data?: unknown, config: RequestConfig = {}) {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
+    async post<T>(path: string, options: { body: string, errorMessage: string }): Promise<T> {
+        const response = await this.fetchWithTimeout(`${this.baseUrl}${path}`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            mode: 'cors',
+            body: options.body,
+        });
 
-  async put<T>(endpoint: string, data?: unknown, config: RequestConfig = {}) {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
+        return this.handleResponse(response, options.errorMessage);
+    }
 
-  async patch<T>(endpoint: string, data?: unknown, config: RequestConfig = {}) {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  }
+    async put<T>(path: string, options: { body: string, errorMessage: string }): Promise<T> {
+        const response = await this.fetchWithTimeout(`${this.baseUrl}${path}`, {
+            method: 'PUT',
+            headers: this.getAuthHeaders(),
+            mode: 'cors',
+            body: options.body,
+        });
 
-  async delete<T>(endpoint: string, config: RequestConfig = {}) {
-    return this.request<T>(endpoint, { ...config, method: 'DELETE' });
-  }
+        return this.handleResponse(response, options.errorMessage);
+    }
+
+    async delete<T>(path: string, options: { errorMessage: string }): Promise<T> {
+        const response = await this.fetchWithTimeout(`${this.baseUrl}${path}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders(),
+            mode: 'cors',
+        });
+
+        return this.handleResponse(response, options.errorMessage);
+    }
 }
 
-export const api = APIClient.getInstance(); 
+export async function getClient() {
+    const API_URL = process.env.API_URL;
+
+    if (!API_URL) {
+        throw new Error('API_URL must be defined in environment variables');
+    }
+
+    const session = await auth();
+
+    if (!session?.user?.access_token) {
+        throw new Error('No access token available');
+    }
+
+    const accessToken = session.user.access_token;
+
+    return new AuthentifiedApiClient(API_URL, accessToken);
+}

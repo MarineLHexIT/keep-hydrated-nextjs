@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
 
-import { registerUser } from '@/app/actions/auth';
+import { registerUser } from '@/app/(auth)/actions';
 import { RegisterFormValues, registerSchema } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import {

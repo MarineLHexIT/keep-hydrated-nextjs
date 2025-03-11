@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import { getTodayStats, getUserProfile } from '@/lib/api/water-intake';
+import { getTodayStats } from '@/lib/api/water-intake';
+import { getUserProfile } from '@/lib/api/user';
 import { TodayIntakePresenter } from './today-water-intake-presenter';
 
 function Loader() {
@@ -23,8 +24,8 @@ function Error() {
 async function Data() {
   try {
     const stats = await getTodayStats();
-    const userProfile = await getUserProfile();
-    return <TodayIntakePresenter waterIntake={stats.total} dailyGoal={userProfile.dailyGoal} />;
+    const { dailyGoal } = await getUserProfile();
+    return <TodayIntakePresenter waterIntake={stats.total} dailyGoal={dailyGoal} />;
   } catch (error) {
     console.error('Failed to fetch water intake stats:', error);
     return <Error />;
