@@ -1,8 +1,8 @@
-import { getWaterIntakeData } from './actions';
+import { getWaterIntakeData, WaterIntakeData } from './actions';
 import { WaterIntakeHistory } from './components/water-intake-history';
 
-export default async function DashboardPage() {
-  const waterIntakeData = await getWaterIntakeData();
+export default function DashboardPage() {
+  const waterIntakeData:Array<WaterIntakeData> = []; //await getWaterIntakeData();
 
   return (
     <div className="space-y-8">

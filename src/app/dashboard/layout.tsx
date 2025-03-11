@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
-import { DashboardHeader } from './components/header';
+import { DashboardHeader } from './components/dashboard-header/';
 
 export default async function DashboardLayout({
   children,

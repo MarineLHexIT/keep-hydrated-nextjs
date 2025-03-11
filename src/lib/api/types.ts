@@ -23,13 +23,14 @@ export interface WaterIntake {
   id: string;
   amount: number;
   timestamp: string;
-  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserProfile {
   id: string;
   email: string;
-  name?: string;
+  name: string;
   dailyGoal: number;
   createdAt: string;
   updatedAt: string;
@@ -37,7 +38,7 @@ export interface UserProfile {
 
 export interface DailyStats {
   total: number;
-  goal: number;
-  percentage: number;
+  count: number;
+  average: number;
   intakes: WaterIntake[];
 } 
