@@ -2,7 +2,10 @@ import { Suspense } from 'react';
 import { getWaterIntakeData, WaterIntakeData } from './actions';
 import { WaterIntakeHistory } from './components/water-intake-history';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
+
   const waterIntakeData:Array<WaterIntakeData> = await getWaterIntakeData();
 
   return (
