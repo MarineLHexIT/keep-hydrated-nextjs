@@ -6,25 +6,24 @@ export const config = {
         '/dashboard',
         '/users',
         '/dashboard/:path*',
-        '/users/:path*'
+        '/users/:path*',
+        '/login'
     ]
 };
-export async function middleware(req: server.NextRequest) {
 
-    const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
+export async function middleware(req: server.NextRequest) {
     const session = await auth();
     const isAuthenticated = !!session?.user;
+    const isLoginPage = req.nextUrl.pathname === '/login';
 
-    if (!isAuthenticated && !isAuthPage) {
-        const callbackUrl = encodeURIComponent(req.nextUrl.pathname);
-        return server.NextResponse.redirect(new URL(`/auth?callbackUrl=${callbackUrl}`, req.url));
+    // If the user is not authenticated and trying to access protected routes
+    if (!isAuthenticated && !isLoginPage) {
+        return server.NextResponse.redirect(new URL('/login', req.url));
     }
 
-    if (isAuthenticated && isAuthPage) {
-        const searchParams = new URL(req.url).searchParams;
-        const callbackUrl = searchParams.get('callbackUrl');
-        const redirectUrl = callbackUrl ? decodeURIComponent(callbackUrl) : '/';
-        return server.NextResponse.redirect(new URL(redirectUrl, req.url));
+    // If the user is authenticated and trying to access login page
+    if (isAuthenticated && isLoginPage) {
+        return server.NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
     return server.NextResponse.next();

@@ -49,12 +49,17 @@ export function LoginForm() {
   const onSubmit = async (data: LoginFormValues) => {
     startTransition(async () => {
       await formAction(data);
+      if (state?.success) {
+        router.push('/dashboard');
+        router.refresh();
+      }
     });
   };
 
   useEffect(() => {
     if (state?.success) {
       router.push('/dashboard');
+      router.refresh();
     }
   }, [state?.success, router]);
 
